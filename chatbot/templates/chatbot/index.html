@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chat-container {
+            height: 450px;
+            overflow-y: auto;
+            border-radius: 12px;
+            padding: 16px;
+            background: linear-gradient(to bottom, #ffffff, #f7fafc);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .message {
+            margin-bottom: 12px;
+            padding: 10px 16px;
+            border-radius: 20px;
+            max-width: 75%;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .user-message {
+            background-color: #1E40AF;
+            color: white;
+            align-self: flex-end;
+        }
+        .bot-message {
+            background-color: #F3F4F6;
+            color: #1F2937;
+            align-self: flex-start;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-200 flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-lg bg-white p-6 rounded-lg shadow-xl">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4 text-center">E-commerce Chatbot</h1>
+        <div class="chat-container flex flex-col" id="chat"></div>
+        <div class="mt-4 flex gap-2">
+            <input type="text" id="userInput" class="flex-1 p-3 border rounded-full shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Type a message...">
+            <button id="sendButton" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-md transition-all">Send</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            const userInput = document.getElementById('userInput').value;
+            if (userInput.trim() === "") return;
+
+            const chatDiv = document.getElementById('chat');
+            chatDiv.innerHTML += `<div class="message user-message self-end">${userInput}</div>`;
+
+            const response = await fetch('/api/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_message: userInput })
+            });
+            const data = await response.json();
+
+            setTimeout(() => {
+                chatDiv.innerHTML += `<div class="message bot-message self-start">${data.bot_response}</div>`;
+                chatDiv.scrollTop = chatDiv.scrollHeight;
+            }, 500);
+
+            document.getElementById('userInput').value = '';
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        });
+
+        window.onload = async () => {
+            const response = await fetch('/api/chat/');
+            const data = await response.json();
+            const chatDiv = document.getElementById('chat');
+            data.forEach(msg => {
+                chatDiv.innerHTML += `<div class="message user-message self-end">${msg.user_message}</div>`;
+                chatDiv.innerHTML += `<div class="message bot-message self-start">${msg.bot_response}</div>`;
+            });
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        };
+    </script>
+</body>
+</html>
