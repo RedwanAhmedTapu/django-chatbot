@@ -1,3 +1,4 @@
 django
 asgiref
 daphne
+gunicorn==20.1.0  # Or the latest version
